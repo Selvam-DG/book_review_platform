@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: bookapp
+spec:
+  type: ClusterIP
+  selector: { app: postgres }
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: bookapp
+spec:
+  # Expose as NodePort to play with curl from outside, or set ClusterIP if only frontend uses it
+  type: NodePort
+  selector: { app: backend }
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30089  # <= adjust if taken
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: bookapp
+spec:
+  type: NodePort
+  selector: { app: frontend }
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30090
+
+

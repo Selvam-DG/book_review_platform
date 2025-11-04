@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: bookapp
+data:
+  # Frontend runtime config (overwrites public/config.js in the container)
+  config.js: |
+    window._CONFIG_ = {
+      API_URL: "http://backend:30089"
+    };
+  # Backend non-secret config example
+  FLASK_PORT: "8000"
