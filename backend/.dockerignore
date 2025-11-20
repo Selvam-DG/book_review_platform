@@ -1,0 +1,50 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Environment / credentials
+*.env
+.env.*
+secrets/
+config.yaml
+config.json
+
+# IDE / editor files
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+*.out
+
+# Bytecode
+*.pyc
+
+# Test files
+tests/
+__tests__/
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Local artifacts
+*.sqlite3
+*.db
