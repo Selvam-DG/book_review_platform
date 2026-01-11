@@ -1,7 +1,7 @@
 import { BookOpen, Star, Heart, Users, TrendingUp, Award } from "lucide-react";
 
 interface HomePageProps {
-  onBooksClick: () => void;
+   onBooksClick?: () => void;
 }
 
 export default function HomePage({ onBooksClick }: HomePageProps) {

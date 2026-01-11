@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, CheckCircle, Loader } from "lucide-react";
-import { postJSON } from "../api";
-import type { User, AuthResponse } from "../types";
+import { postJSON } from "../api/index";
 
-interface SignupPageProps {
-  onSuccess: (token: string, user: User) => void;
-}
 
-export default function SignupPage({ onSuccess }: SignupPageProps) {
+
+export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
 
   const validateForm = (): boolean => {
     if (!username.trim() || !email.trim() || !password.trim()) {
@@ -32,8 +31,8 @@ export default function SignupPage({ onSuccess }: SignupPageProps) {
       return false;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
       return false;
     }
 
@@ -47,6 +46,7 @@ export default function SignupPage({ onSuccess }: SignupPageProps) {
 
   const handleSubmit = async () => {
     setError("");
+    setSuccess("");
 
     if (!validateForm()) {
       return;
@@ -54,12 +54,21 @@ export default function SignupPage({ onSuccess }: SignupPageProps) {
 
     try {
       setLoading(true);
-      const response = await postJSON<AuthResponse>("/register", {
+      await postJSON("/auth/register", {
         username,
         email,
         password,
       });
-      onSuccess(response.access_token, response.user);
+
+      setSuccess(
+        "Registration submitted successfully. Your account will be activated after admin approval. You will receive an email once approved."
+      );
+
+      // Optional: clear form
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -96,6 +105,13 @@ export default function SignupPage({ onSuccess }: SignupPageProps) {
             <p className="text-sm">{error}</p>
           </div>
         )}
+        {/* Success */}
+        {success && (
+          <div className="mb-4 p-4 bg-green-100 text-green-800 rounded-lg flex gap-2">
+            <CheckCircle size={20} />
+            <p className="text-sm">{success}</p>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>
@@ -105,10 +121,10 @@ export default function SignupPage({ onSuccess }: SignupPageProps) {
             <input
               type="text"
               className="w-full border border-gray-300 rounded px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Choose a username"
+              placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={loading}
+              disabled={loading || !!success}
             />
             {username.length > 0 && username.length < 3 && (
               <p className="text-xs text-red-500 mt-1">
@@ -124,10 +140,10 @@ export default function SignupPage({ onSuccess }: SignupPageProps) {
             <input
               type="email"
               className="w-full border border-gray-300 rounded px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Enter your email"
+              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
+              disabled={loading || !!success}
             />
             {email.length > 0 &&
               !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
@@ -144,14 +160,15 @@ export default function SignupPage({ onSuccess }: SignupPageProps) {
             <input
               type="password"
               className="w-full border border-gray-300 rounded px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Create a password"
+              placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
+               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading || !!success}
+              onKeyPress={handleKeyPress}
             />
-            {password.length > 0 && password.length < 6 && (
+            {password.length > 0 && password.length < 8 && (
               <p className="text-xs text-red-500 mt-1">
-                Password must be at least 6 characters
+                Password must be at least 8 characters
               </p>
             )}
           </div>
@@ -164,11 +181,11 @@ export default function SignupPage({ onSuccess }: SignupPageProps) {
               <input
                 type="password"
                 className="w-full border border-gray-300 rounded px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Confirm your password"
+                placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 onKeyPress={handleKeyPress}
-                disabled={loading}
+                disabled={loading || !!success}
               />
               {confirmPassword.length > 0 && passwordsMatch && (
                 <CheckCircle

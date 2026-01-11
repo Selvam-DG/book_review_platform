@@ -1,20 +1,25 @@
-import { BookOpen, LogOut, LogIn, UserPlus } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
-import type { User } from "../types";
+import { BookOpen, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { useState, useRef, useEffect } from "react";
 
-interface NavbarProps {
-  token: string | null;
-  user: User | null;
-  onLogout: () => void;
-}
 
-export default function Navbar({
-  token,
-  user,
-  onLogout,
-}: NavbarProps) {
+export default function Navbar() {
+  const { token, user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+
+  const [openUserMenu, setOpenUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setOpenUserMenu(false);
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -27,53 +32,81 @@ export default function Navbar({
           <span className="font-bold text-lg text-gray-900">BookReview</span>
         </div>
 
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-6 items-center">
           <button
             onClick={() => navigate("/books")}
-            className={`transition ${
-              location.pathname === "/books"
-                ? "text-indigo-600 font-semibold"
-                : "text-gray-700 hover:text-indigo-600"
-            }`}
+            className="text-gray-700 hover:text-indigo-600"
           >
             Books
           </button>
 
-          {token && user ? (
-            <>
-              <span className="text-sm text-gray-600">
-                Welcome, <span className="font-semibold">{user.username}</span>
-              </span>
-              {user.is_admin === 1 && (
-                <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded font-semibold">
-                  Admin
-                </span>
-              )}
-              <button
-                onClick={onLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition text-sm"
-              >
-                <LogOut size={16} /> Logout
+          {!token && (
+            <div className="flex gap-4">
+              <button onClick={() => navigate("/login")} className="hover:text-indigo-600">
+                Login
               </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => navigate("/login")}
-                className="flex items-center gap-2 px-4 py-2 border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-50 transition text-sm"
-              >
-                <LogIn size={16} /> Login
+              <button onClick={() => navigate("/signup")} className="hover:text-indigo-600">
+                Sign Up
               </button>
-              <button
-                onClick={() => navigate("/signup")}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition text-sm"
-              >
-                <UserPlus size={16} /> Sign Up
-              </button>
-            </>
+            </div>
           )}
+
+          {token && user && (
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setOpenUserMenu(!openUserMenu)}
+                className="flex items-center gap-1 text-gray-800 hover:text-indigo-600"
+              >
+                {user.username}
+                <ChevronDown size={18} />
+              </button>
+
+              {openUserMenu && (
+                <div className="absolute right-0 mt-2 bg-white shadow-lg rounded w-48 p-2 z-50">
+                  {!user.is_admin && (
+                    <>
+                      <MenuItem label="My Profile" onClick={() => navigate("/profile")} />
+                      <MenuItem label="My Reviews" onClick={() => navigate("/my-reviews")} />
+                      <MenuItem label="Suggest Book" onClick={() => navigate("/suggest-book")} />
+                      <MenuItem label="My Suggestions" onClick={() => navigate("/my-suggestions")} />
+                      <Divider />
+                    </>
+                  )}
+
+                  {user.is_admin && (
+                    <>
+                      <MenuItem label="Admin Dashboard" onClick={() => navigate("/admin")} />
+                      <MenuItem label="Book Suggestions" onClick={() => navigate("/admin/suggestions")} />
+                      <MenuItem label="User Approvals" onClick={() => navigate("/admin/users")} />
+                      <MenuItem label="Stats" onClick={() => navigate("/admin/stats")} />
+                      <Divider />
+                    </>
+                  )}
+
+                  <MenuItem label="Logout" onClick={logout} className="text-red-600" />
+                </div>
+              )}
+            </div>
+          )}
+
+          
         </div>
       </div>
     </nav>
   );
+}
+
+function MenuItem({ label, onClick, className = "" }: any) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded ${className}`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function Divider() {
+  return <div className="border-t my-2"></div>;
 }

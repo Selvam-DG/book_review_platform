@@ -1,40 +1,65 @@
 import { useState } from "react";
-import { AlertCircle, Loader } from "lucide-react";
-import { Link } from "react-router-dom";
-import { postJSON } from "../api";
-import type { User, AuthResponse } from "../types";
+import { AlertCircle, Loader, Info } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { postJSON } from "../api/index";
+import { useAuth } from "../auth/AuthContext";
+import type { AuthResponse } from "../types";
 
-interface LoginPageProps {
-  onSuccess: (token: string, user: User) => void;
-}
 
-export default function LoginPage({ onSuccess }: LoginPageProps) {
-  const [username, setUsername] = useState("");
+
+export default function LoginPage() {
+    const navigate = useNavigate();
+    const { login } = useAuth();
+
+  const [identifier, setIdentifier] = useState(""); 
   const [password, setPassword] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState("");
 
   const handleSubmit = async () => {
     setError("");
+    setInfo("");
 
-    if (!username.trim() || !password.trim()) {
-      setError("Please fill in all fields");
+    if (!identifier.trim() || !password.trim()) {
+      setError("Username/email and password are required");
       return;
+    }
+    const payload: any = {
+      password,
+    };
+    if (identifier.includes("@")) {
+      payload.email = identifier.trim();
+    } else {
+      payload.username = identifier.trim();
     }
 
     try {
       setLoading(true);
-      const response = await postJSON<AuthResponse>("/auth/login", {
-        username,
-        password,
-      });
-      onSuccess(response.access_token, response.user);
+
+      const response = await postJSON<AuthResponse>("/auth/login", payload);
+
+      login(response.access_token, response.refresh_token, response.user);
+      navigate("/books");
     } catch (err) {
-      setError((err as Error).message);
+      const msg = (err as Error).message;
+
+      // Backend-aligned messages
+      if (msg.includes("pending approval")) {
+        setInfo(
+          "Your account is pending approval. You will be notified once activated."
+        );
+      } else if (msg.includes("invalid")) {
+        setError("Invalid username/email or password");
+      } else {
+        setError(msg || "Login failed");
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !loading) {
@@ -48,7 +73,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Login</h2>
           <p className="text-gray-600 mt-2">
-            Sign in to your account to continue
+            Sign in using your username or email
           </p>
         </div>
 
@@ -58,18 +83,24 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <p className="text-sm">{error}</p>
           </div>
         )}
+         {info && (
+          <div className="mb-4 p-4 bg-blue-100 text-blue-800 rounded-lg flex gap-2">
+            <Info size={20} />
+            <p className="text-sm">{info}</p>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username
+              Username or Email
             </label>
             <input
               type="text"
               className="w-full border border-gray-300 rounded px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter  username or email"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={loading}
             />
@@ -82,7 +113,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             <input
               type="password"
               className="w-full border border-gray-300 rounded px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Enter your password"
+              placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -115,7 +146,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
         <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-xs text-gray-500 text-center">
-            Demo credentials: username / password
+             You can log in using either your username or email address
           </p>
         </div>
       </div>

@@ -1,18 +1,26 @@
-// Type definitions for the frontend
-
 export type Author = {
   id: number;
   name: string;
   bio?: string;
   birth_date?: string;
   nationality?: string;
+  created_at?: string;
 };
 
 export type Genre = {
   id: number;
   name: string;
   description?: string;
+  created_at?: string;
 };
+
+export type BookImage = {
+  id: number;
+  object_url: string;
+  is_cover: boolean;
+  created_at?: string;
+};
+
 
 export type Book = {
   id: number;
@@ -20,11 +28,18 @@ export type Book = {
   author: Author;
   genre: Genre;
   isbn?: string;
-  description?: string;
+  publication_date?: string;
   pages?: number;
   language?: string;
   publisher?: string;
+  description?: string;
   created_at?: string;
+
+  images?: BookImage[];
+  reviews?: Review[];
+
+  avg_rating?: number;
+  reviews_count?: number;
 };
 
 export type User = {
@@ -39,34 +54,11 @@ export type Review = {
   id: number;
   rating: number;
   review_text?: string;
-  user: User;
   helpful_count: number;
   created_at?: string;
+  user: User;
 };
 
 export type BookDetail = Book & {
   reviews: Review[];
-};
-
-export type AuthResponse = {
-  access_token: string;
-  user: User;
-};
-
-export type LoginRequest = {
-  username: string;
-  password: string;
-};
-
-export type RegisterRequest = {
-  username: string;
-  email: string;
-  password: string;
-};
-
-export type ReviewRequest = {
-  book_id: number;
-  user_id: number;
-  rating: number;
-  review_text?: string;
 };
