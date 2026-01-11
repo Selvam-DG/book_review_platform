@@ -62,6 +62,28 @@ def admin_list_users():
             }
             for u in users
         ]), 200
+        
+@admin_users_bp.get("/admin/users/<int:user_id>")
+@admin_required
+def admin_list_user(user_id: int):
+    """Admin lists all users"""
+    with SessionLocal() as s:
+        user = s.query(User).filter(User.id == user_id).first()
+        if not user:
+            return {"error": "user not found"}, 404
+        return jsonify(
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "is_admin": user.is_admin,
+                "status": user.status,
+                "created_at": format_datetime(user.created_at),
+                "approved_at": format_datetime(user.approved_at)               
+            }
+            
+        ), 200
+
 
 @admin_users_bp.delete("/admin/users/<int:user_id>")
 @admin_required

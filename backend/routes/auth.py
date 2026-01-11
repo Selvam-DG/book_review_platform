@@ -51,13 +51,19 @@ def login():
     """User login with username and password"""
     data = request.get_json(force=True)
     username = data.get("username")
+    email = data.get("email")
     password = data.get("password")
+    if not username and not email:
+        return {"error": "username or email required"}, 400
 
-    if not username or not password:
-        return {"error": "username and password required"}, 400
+    if not password :
+        return {"error": "password required"}, 400
 
     with SessionLocal() as s:
-        user = s.query(User).filter(User.username == username).first()
+        if username:
+            user = s.query(User).filter(User.username == username).first()
+        elif email:
+            user = s.query(User).filter(User.email==email).first()
         if not user or not check_password_hash(user.password_hash, password):
             return {"error": "invalid username or password"}, 401
         if user.status != "ACTIVE":

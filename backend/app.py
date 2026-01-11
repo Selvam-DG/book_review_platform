@@ -9,6 +9,8 @@ import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import Base, Author, Genre, User, Book, Review
 from db import engine, SessionLocal
+
+
 from routes.auth import auth_bp
 from routes.admin_users import admin_users_bp
 from routes.books import books_bp
@@ -18,6 +20,9 @@ from routes.book_reviews import book_reviews_bp
 from routes.book_images import book_images_bp
 from routes.book_suggestions import book_suggestions_bp
 from routes.book_suggestions_admin import book_suggestions_admin_bp
+from routes.admin_dashboard import admin_dashboard_bp
+from routes.admin_audit_logs import admin_audit_logs_bp
+
 from utils.auth_utils import admin_required
 from dotenv import load_dotenv
 load_dotenv()
@@ -50,6 +55,9 @@ app.register_blueprint(book_genres_bp)
 app.register_blueprint(book_reviews_bp)
 app.register_blueprint(book_suggestions_bp)
 app.register_blueprint(book_suggestions_admin_bp)
+app.register_blueprint(admin_dashboard_bp)
+app.register_blueprint(admin_audit_logs_bp)
+
 
 if __name__ == "__main__":
     Base.metadata.create_all(engine)

@@ -2,7 +2,7 @@ from flask import Blueprint,  jsonify, request
 from db import SessionLocal
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
-from models import Book, Review, Author, Genre
+from models import Book, Review, Author, Genre, BookImage
 from utils.auth_utils import admin_required, format_datetime, format_date
 from datetime import datetime
 
@@ -13,7 +13,8 @@ def list_books():
     with SessionLocal() as s:
         books = s.query(Book).options(
             joinedload(Book.author),
-            joinedload(Book.genre)
+            joinedload(Book.genre),
+            joinedload(Book.images)
         ).all()
         return jsonify([
             {
@@ -27,7 +28,8 @@ def list_books():
                 "language": b.language,
                 "publisher": b.publisher,
                 "description": b.description,
-                "created_at": format_datetime(b.created_at)
+                "created_at": format_datetime(b.created_at),
+                "cover_url": b.images
             }
             for b in books
         ]), 200

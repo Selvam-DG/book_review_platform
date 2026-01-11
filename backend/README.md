@@ -206,7 +206,6 @@ REFRESH_TOKEN_DAYS=7
 ```env
 DATABASE_URL=postgresql://user:password@host:5432/dbname
 ```
-
 ---
 
 ### OCI Object Storage
@@ -254,6 +253,42 @@ http://localhost:8000
 
 ---
 
+
+##  Database Migrations (Alembic)
+
+This backend uses **Alembic** to manage database schema migrations.
+
+All migration logic and documentation lives in:
+
+```text
+backend/alembic/
+````
+
+### Quick Commands
+
+```bash
+# Create migration after model changes
+alembic revision --autogenerate -m "message"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback last migration
+alembic downgrade -1
+```
+
+### Multiple Heads?
+
+If you see an error about multiple heads:
+
+```bash
+alembic merge heads -m "merge migration heads"
+alembic upgrade head
+```
+ For full details, see
+[`backend/alembic/README.md`](./alembic/README.md)
+
+---
 ## Kubernetes Notes (K0s)
 
 * Backend is **stateless**
